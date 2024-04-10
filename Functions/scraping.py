@@ -8,6 +8,7 @@ from datetime import date
 import re
 from time import sleep
 import random
+from tqdm import tqdm 
 scraper = cfscrape.create_scraper()
 
 
