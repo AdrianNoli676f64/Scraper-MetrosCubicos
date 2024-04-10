@@ -24,7 +24,7 @@ from tqdm import tqdm
 ### librerias para el web scraping particular de inmuebles
 import Functions.scraping as ws
 import Functions.cleaning_tools as ct
-
+import Functions.normalize as nz
 
 ### Elementos a extraer de la página
 RULES_SEARCH_PAGE = {
@@ -82,3 +82,31 @@ print('-------------------------------------------------------------------------
 print('limpieza y almacenado de datos...')
 
 ct.listas(features_list, 'metroscubicos')
+
+print('---------------------------------------------------------------------------------------------')
+    
+## Datos en un dataframe
+df_c = pd.DataFrame(features_list)
+df_c['key'] = df_c['key'] + df_c['ubicacion'] + df_c['precio'] + df_c['m2']
+df_c = df_c[['ubicacion', 'key', 'precio', 'm2', 'rooms', 'alcaldia']]
+#df_c = df_c.drop_duplicates().reset_index()
+df_c['ubicacion'] = nz.location_normal(df_c['ubicacion'])
+df_c = df_c[['ubicacion', 'key', 'precio', 'm2', 'rooms', 'alcaldia']]
+df_c['auction'] = df_c['key'].apply(ct.remates)
+## Transformación de la llave
+
+df_c['key'] = ct.llaves(df_c['key'])
+
+#########################################################################################################
+##################                            Datos finales                            ##################
+######################################################################################################### 
+df_c['alcaldia'] = ct.homologador_alcaldia(df_c['alcaldia'])
+df_c['bathroom'] = 0
+df_c['page'] = 'MC'
+df_c['property'] = 'Departamentos'
+df_c['operation'] = 'Venta'
+df_c = df_c[['ubicacion', 'key', 'precio', 'm2', 'rooms', 'bathroom', 'alcaldia', 'auction', 'page', 'property', 'operation']]
+
+print(df_c.shape)
+print(df_c.info())
+df_c.to_csv('Output/uwu_m2.csv', encoding = 'UTF8', index =False)
